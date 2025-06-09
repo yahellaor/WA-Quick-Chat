@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>פתח שיחה ב-WhatsApp</title>
+    <style>
+        body {
+            background-color: #e5ddd5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            direction: rtl;
+        }
+        h1 {
+            color: #075E54;
+            margin-bottom: 10px;
+        }
+        input {
+            font-size: 1.5em;
+            padding: 10px;
+            width: 300px;
+            border: 2px solid #25D366;
+            border-radius: 10px;
+            outline: none;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            border-color: #128C7E;
+        }
+        button {
+            font-size: 1.5em;
+            padding: 10px 20px;
+            margin-top: 20px;
+            background-color: #25D366;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #128C7E;
+        }
+        #history {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 270px;
+            max-height: 90vh;
+            overflow-y: auto;
+            background-color: rgba(255, 255, 255, 0.98);
+            border: 2px solid #075E54;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 100;
+            font-size: 0.9em;
+        }
+        #history h2 {
+            font-size: 1.1em;
+            color: #075E54;
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        #clearHistoryBtn {
+            font-size: 0.8em;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            padding: 4px 8px;
+            transition: background-color 0.3s;
+        }
+        #clearHistoryBtn:hover {
+            background-color: #d32f2f;
+        }
+        .history-item {
+            margin-bottom: 8px;
+            padding: 5px;
+            border-bottom: 1px solid #ccc;
+        }
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        .history-item span {
+            font-weight: bold;
+            color: #128C7E;
+            cursor: pointer;
+        }
+        .history-input {
+            width: 90%;
+            font-size: 0.8em;
+            margin-top: 5px;
+        }
+        .delete-btn {
+            font-size: 0.8em;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            padding: 2px 6px;
+            float: left;
+            transition: background-color 0.3s;
+        }
+        .delete-btn:hover {
+            background-color: #d32f2f;
+        }
+        .logo {
+            width: 50px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp Logo" class="logo">
+    <h1>פתח שיחה ב-WhatsApp</h1>
+    <input type="text" id="phone" placeholder="0501234567 או 501234567">
+    <button onclick="openWhatsApp()">📲 פתח שיחה</button>
+
+    <div id="history">
+        <h2>
+            היסטוריה אחרונה
+            <button id="clearHistoryBtn" onclick="clearHistory()">🗑️ נקה</button>
+        </h2>
+        <div id="historyList"></div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            document.getElementById('phone').focus();
+            loadHistory();
+        };
+
+        document.getElementById('phone').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                openWhatsApp();
+            }
+        });
+
+        function openWhatsApp() {
+            let number = document.getElementById('phone').value.trim();
+            number = number.replace(/\s/g, '');
+
+            if (number.startsWith('0')) {
+                number = number.substring(1);
+            }
+
+            const fullNumber = '972' + number;
+            const url = 'https://wa.me/' + fullNumber;
+
+            addToHistory(number, '');
+
+            window.open(url, '_blank');
+        }
+
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('whatsappHistory')) || [];
+            updateHistoryUI(history);
+        }
+
+        function addToHistory(number, note) {
+            let history = JSON.parse(localStorage.getItem('whatsappHistory')) || [];
+
+            history = history.filter(item => item.number !== number);
+
+            history.unshift({ number, note });
+
+            if (history.length > 10) {
+                history = history.slice(0, 10);
+            }
+
+            localStorage.setItem('whatsappHistory', JSON.stringify(history));
+
+            updateHistoryUI(history);
+        }
+
+        function updateHistoryUI(history) {
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = '';
+
+            history.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+
+                const span = document.createElement('span');
+                span.textContent = '📞 ' + item.number;
+                span.onclick = function() {
+                    document.getElementById('phone').value = '0' + item.number;
+                    document.getElementById('phone').focus();
+                };
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.textContent = '❌';
+                deleteBtn.onclick = function() {
+                    deleteHistoryItem(index);
+                };
+
+                div.appendChild(deleteBtn);
+                div.appendChild(span);
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'history-input';
+                input.placeholder = 'הוסף הערה...';
+                input.value = item.note;
+                input.onchange = function() {
+                    item.note = input.value;
+                    localStorage.setItem('whatsappHistory', JSON.stringify(history));
+                };
+
+                div.appendChild(document.createElement('br'));
+                div.appendChild(input);
+
+                historyList.appendChild(div);
+            });
+        }
+
+        function deleteHistoryItem(index) {
+            let history = JSON.parse(localStorage.getItem('whatsappHistory')) || [];
+            history.splice(index, 1);
+            localStorage.setItem('whatsappHistory', JSON.stringify(history));
+            updateHistoryUI(history);
+        }
+
+        function clearHistory() {
+            if (confirm('האם אתה בטוח שברצונך לנקות את ההיסטוריה?')) {
+                localStorage.removeItem('whatsappHistory');
+                updateHistoryUI([]);
+            }
+        }
+    </script>
+</body>
+</html>
