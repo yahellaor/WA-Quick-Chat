@@ -16,7 +16,7 @@ Supports Israeli phone numbers (auto removes initial `0`), saves your recent num
 
 ## Usage
 
-- Open `NWAChat.html` in your browser
+- Open `index.html` in your browser
 - Enter the phone number (e.g. `0501234567` or `501234567`)
 - Press Enter or click "Open Chat"
 - Your last numbers will be saved on the left
